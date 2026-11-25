@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Chef Kitchen — Interactive Prototype</title>
+<style>
+:root{
+  --green:#2B6643; --deep:#274535; --ink:#29382C; --muted:#788175;
+  --pale:#ECF3E8; --pale2:#F4F7F0; --line:#D7E1D1;
+  --page:#F7F9F7; --white:#FFFFFF; --danger:#A34B37;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#F0F2EA;color:var(--ink)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.52}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #BD7A37;outline-offset:2px}
+svg{flex:none}
+.topbar{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+.topbar strong{font-size:15px;color:var(--deep)}
+.topbar button{border:1px solid var(--line);background:#fff;color:var(--deep);border-radius:9px;padding:8px 12px;font-size:13px;font-weight:700}
+.main{max-width:780px;min-height:calc(100dvh - 58px);margin:0 auto;padding:22px;display:grid;grid-template-columns:265px 420px;align-items:start;justify-content:center;gap:23px}
+.aside{padding:19px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 3px 12px #10362909}
+.aside h2{font-size:16px;margin:0 0 14px}
+.aside p{font-size:13px;line-height:1.5;color:var(--muted);margin:8px 0}
+.side-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--green);font-weight:700;margin-bottom:7px}
+.test-task{padding:14px 0;border-top:1px solid var(--line)}
+.test-task:first-of-type{border-top:0;padding-top:0}
+.test-task b{font-size:13px;line-height:1.4;display:block}
+.tiny{font-size:11px!important;color:var(--muted)}
+.side-status{margin-top:16px;border-top:1px solid var(--line);padding-top:16px}
+.side-status span{display:block;margin-top:6px;font-size:12px;color:var(--green);font-weight:700}
+.testing-note{font-size:12px;color:var(--muted);line-height:1.5}
+
+.btn{border:1px solid var(--line);background:#fff;border-radius:11px;color:var(--deep);font-size:14px;line-height:1.2;padding:12px 15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-align:center;font-weight:700;min-height:43px}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.soft{background:var(--pale);color:var(--green);border-color:var(--pale)}
+.btn.danger{color:var(--danger);border-color:#EAD9D4}
+.btn.small{min-height:34px;padding:8px 12px;font-size:12px;border-radius:9px}
+.btn:active{transform:translateY(1px)}
+.btn.full{width:100%}
+.btn + .btn{margin-left:0}
+.phone-wrap{display:flex;justify-content:center}
+.phone{height:min(840px,calc(100dvh - 104px));min-height:650px;width:420px;border-radius:32px;border:6px solid #314536;background:var(--page);box-shadow:0 25px 55px #1D322C29;display:flex;flex-direction:column;overflow:hidden}
+.phone-header{flex:none;background:var(--deep);color:#fff;padding:12px 22px 20px;border-radius:0 0 21px 21px}
+.phone-header.simple{background:#fff;color:var(--ink);border-radius:0;border-bottom:1px solid var(--line);padding-bottom:16px}
+.statusline{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;height:18px;margin-bottom:16px}
+.statusline .status-icons{display:flex;align-items:center;gap:5px}
+.statusline .dot{height:6px;width:6px;border-radius:10px;background:currentColor}
+.statusline .battery{height:8px;width:18px;border:1.6px solid currentColor;border-radius:3px}
+.heading-row{display:flex;align-items:center;gap:8px}
+.back-inline{border:0;background:transparent;color:inherit;padding:5px 4px 5px 0;display:flex;align-items:center}
+.heading-row h1{margin:0;font-size:27px;line-height:1.14;letter-spacing:-.7px;font-weight:700}
+.phone-header .subtitle{font-size:12px;color:#D9EAE1;margin:9px 0 0;line-height:1.4}
+.phone-header.simple .subtitle{color:var(--muted)}
+.viewport{flex:1;min-height:0;overflow:auto;padding:17px 16px 24px;scrollbar-width:thin;scrollbar-color:#C5D3C9 transparent}
+.viewport::-webkit-scrollbar{width:5px}.viewport::-webkit-scrollbar-thumb{background:#C5D3C9;border-radius:10px}
+.bottom-nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#fff;border-top:1px solid var(--line);padding:8px 3px 9px}
+.nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;color:#697665;font-size:9px;min-width:0;padding:4px 0 2px}
+.nav-btn svg{height:21px;width:21px}
+.nav-btn span{white-space:nowrap;letter-spacing:-.25px}
+.nav-btn.active{font-weight:700;color:var(--green)}
+.nav-btn.active .nav-icon{background:var(--pale)}
+.nav-icon{height:33px;width:42px;display:flex;align-items:center;justify-content:center;border-radius:13px}
+.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:12px}
+.card.padless{padding:0;overflow:hidden}
+.card.flat{background:var(--pale2)}
+.card h3{font-size:16px;margin:0 0 7px}
+.card p{font-size:13px;line-height:1.45;color:var(--muted);margin:4px 0}
+.section-title{font-size:17px;font-weight:700;margin:20px 1px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.section-title:first-child{margin-top:2px}
+.section-title .link{font-size:12px}
+.link{color:var(--green);background:transparent;border:0;font-weight:700;padding:4px}
+.kicker{font-size:11px;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.row.between{justify-content:space-between}
+.column{display:flex;flex-direction:column;gap:8px}
+.gap4{gap:4px}.gap12{gap:12px}.grow{flex:1;min-width:0}.right{text-align:right}
+.text-small{font-size:12px;color:var(--muted);line-height:1.4}
+.text-body{font-size:13px;line-height:1.5;color:var(--ink)}
+.text-strong{font-size:14px;font-weight:700}
+.text-green{color:var(--green)}
+.text-big{font-size:27px;font-weight:700;color:var(--deep)}
+.muted{color:var(--muted)}
+.line{border-top:1px solid var(--line);margin:12px 0}
+.pill{border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);padding:8px 12px;font-size:12px;white-space:nowrap}
+.pill.selected{background:var(--green);color:#fff;border-color:var(--green)}
+.pill.soft{background:var(--pale);color:var(--green);border-color:var(--pale)}
+.chips{display:flex;gap:7px;overflow:auto;padding:1px 0 3px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.searchbar{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:0 12px;height:48px}
+.searchbar svg{color:var(--green)}.searchbar input{font-size:13px;width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--ink)}
+.iconbox{width:40px;height:40px;border-radius:12px;background:var(--pale);color:var(--green);display:grid;place-items:center}
+.listrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.listrow:last-child{border:0;padding-bottom:0}
+.row-btn{border:0;background:none;padding:0;display:flex;align-items:center;gap:10px;min-width:0;width:100%;text-align:left;color:inherit}
+.row-btn .chev{margin-left:auto;color:#83917D}
+.cat-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:13px;padding:10px;background:#fff;margin-bottom:8px}
+.cat-item button{border:0;background:none;color:var(--ink);display:flex;align-items:center;gap:10px;width:100%;padding:0;text-align:left}
+.stat-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:16px}
+.stat-tile{padding:11px 2px;border-radius:11px;background:var(--pale2);text-align:center}
+.stat-tile strong{display:block;font-size:18px;color:var(--deep)}
+.stat-tile span{font-size:9px;color:var(--muted);text-transform:uppercase}
+.alert-card{border-left:4px solid var(--green)}
+.button-row{display:flex;gap:8px;margin-top:13px}
+.button-row > *{flex:1;min-width:0}
+.option-row{width:100%;border:1px solid var(--line);background:#fff;border-radius:15px;padding:15px 12px;margin-bottom:9px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink)}
+.option-row .chev{margin-left:auto;color:#758D80}
+.option-row strong{display:block;font-size:14px}
+.option-row small{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.metric-grid .metric{padding:10px 3px;background:var(--pale2);text-align:center;border-radius:11px}
+.metric strong{display:block;font-size:14px;color:var(--deep)}
+.metric span{font-size:9px;color:var(--muted)}
+.feature-art{display:flex;align-items:center;justify-content:center;height:105px;background:var(--pale);border-radius:13px;margin-bottom:11px;color:var(--green)}
+.feature-art svg{width:84px;height:84px}
+.recipe-tile{display:flex;gap:11px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:13px;background:#fff;margin-bottom:7px}
+.recipe-tile .grow strong{font-size:13px;display:block}.recipe-tile small{color:var(--muted);font-size:10px}
+.recipe-tile button{padding:6px;border:0;background:transparent;color:var(--green)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px 0 9px;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--ink)}
+.day small{font-size:10px;color:var(--muted)}.day b{font-size:15px}
+.day.active{background:var(--green);border-color:var(--green);color:#fff}.day.active small{color:#E3F1E7}
+.meal-options{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.meal-options button{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:11px;padding:12px 3px;font-size:11px}
+.meal-options button.active{background:var(--green);color:#fff;border-color:var(--green)}
+.label-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;margin-bottom:6px}
+.progress{height:7px;background:#E5EDE7;border-radius:99px;overflow:hidden}.progress span{display:block;height:100%;background:var(--green);border-radius:99px}
+.nutrition-list{display:flex;flex-direction:column;gap:0}
+.nutrition-line{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:9px 2px;font-size:13px}
+.nutrition-line:last-child{border:0}
+.nutrition-line strong{font-weight:700;color:var(--deep)}
+.nutrient-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.nutrient-grid div{background:var(--pale2);padding:10px 12px;border-radius:11px;display:flex;flex-direction:column;gap:3px}
+.nutrient-grid span{font-size:12px;font-weight:700}.nutrient-grid small{color:var(--muted);font-size:11px}
+.assist-card{background:var(--pale);border:1px solid #D6E6D9;border-radius:14px;padding:12px;width:100%;display:flex;align-items:center;gap:11px;color:var(--deep);text-align:left}
+.assist-card strong{font-size:15px;display:block}.assist-card small{display:block;font-size:11px;color:#6D8176;margin-top:4px}
+.step-body{min-height:170px;border:1px solid var(--line);border-radius:15px;padding:18px;background:#fff;margin:13px 0}
+.step-body h3{font-size:17px;margin:0 0 13px}.step-body p{font-size:14px;line-height:1.65;margin:0}
+.input{height:43px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;color:var(--ink)}
+.textarea{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;resize:vertical;min-height:84px;color:var(--ink)}
+.inputlabel{font-size:12px;font-weight:700;color:var(--ink);display:block;margin:10px 0 5px}
+
+
+
+
+.note{background:var(--pale2);border-radius:12px;padding:12px;font-size:12px;line-height:1.45;color:#5D7366}
+
+.ai-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ai-shortcuts button{border:1px solid var(--line);background:#fff;border-radius:13px;padding:13px;display:flex;align-items:flex-start;gap:9px;text-align:left;min-height:69px;color:var(--deep)}
+.ai-shortcuts button strong{font-size:12px;display:block;margin-bottom:3px}.ai-shortcuts button small{font-size:10px;color:var(--muted);display:block;line-height:1.35}
+.chatbubble{background:var(--pale);border-radius:16px 16px 4px 16px;padding:14px;font-size:13px;line-height:1.55;margin-bottom:12px}
+.assistant-reply{background:#fff;border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:14px;font-size:13px;line-height:1.55;margin-bottom:12px}
+.recipe-info{display:flex;gap:7px;align-items:center;font-size:11px;color:var(--muted)}
+
+.overlay{position:fixed;inset:0;background:#132D25A8;display:flex;align-items:center;justify-content:center;z-index:40;padding:14px}
+.modal{background:#fff;border-radius:17px;box-shadow:0 12px 45px #10251D4D;padding:19px;width:100%;max-width:450px;max-height:90dvh;overflow:auto}
+.modal h2{font-size:19px;line-height:1.25;margin:0 0 8px}.modal .modal-desc{font-size:13px;line-height:1.5;color:var(--muted);margin:6px 0 15px}
+.modal .option-row{margin-bottom:7px}
+.modal-footer{margin-top:15px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.snackbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#183F31;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 10px 26px #10291D55;z-index:55;font-size:13px;max-width:calc(100% - 24px);text-align:center}
+@media(max-width:1080px){.main{grid-template-columns:240px 420px;justify-content:center}}
+@media(max-width:760px){.topbar{height:48px;padding:0 13px}.main{display:flex;flex-direction:column;align-items:center;padding:8px;gap:12px}.aside{max-width:420px;width:100%}.test-panel{order:2}.phone-wrap{order:1;width:100%}.phone{width:min(100%,420px);height:min(840px,calc(100dvh - 70px));min-height:575px}}
+@media print{.topbar,.aside{display:none}.main{display:block;padding:0}.phone{border:0;box-shadow:none;border-radius:0;width:100%;height:auto}.viewport{overflow:visible}.bottom-nav{display:none}}
+
+.prototype-controls{padding-top:14px;margin-top:14px;border-top:1px solid var(--line)}
+.prototype-controls h3{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0 0 9px}
+.control-check{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink);cursor:pointer;margin:11px 0;line-height:1.35}
+.control-check input{width:16px;height:16px;accent-color:var(--green);flex:none}
+
+@media(max-width:1080px) and (min-width:761px){.main{grid-template-columns:225px 420px;max-width:740px}}
+
+.cooking-tools{margin:10px 0 12px}
+.cooking-tools .btn{white-space:normal}
+
+body.updated .phone-header{padding:8px 18px 10px}
+body.updated .statusline{margin-bottom:7px;height:14px;font-size:10px}
+body.updated .heading-row h1{font-size:23px;letter-spacing:-.35px}
+body.updated .phone-header .subtitle{margin:3px 0 0;font-size:11px}
+body.updated .viewport{padding:12px 14px 15px}
+body.updated .section-title{font-size:15px;margin:12px 0 7px}
+body.updated .card{padding:12px;margin-bottom:9px}
+body.updated .option-row{padding:11px;margin-bottom:7px}
+body.updated .nav-btn{color:#415E48;font-weight:700;font-size:10px}
+body.updated .nav-btn svg{stroke-width:2.7;height:23px;width:23px}
+body.updated .bottom-nav{padding:5px 3px 6px}
+body.updated .nav-icon{height:33px}
+body.updated .feature-art{height:73px}
+body.updated .recipe-info{font-size:12px}
+body.updated .cooking-screen{display:flex;flex-direction:column;height:100%;gap:9px;min-height:0}
+body.updated .phone:has(.cooking-screen) .viewport{overflow:hidden!important;padding:10px 12px}
+body.updated .cooking-screen .progress{margin:0}
+body.updated .cooking-step-box{flex:1;min-height:0;overflow:hidden;margin:0;border:1px solid var(--line);border-radius:15px;padding:15px;background:#fff}
+body.updated .cooking-step-box h3{font-size:16px;margin:0 0 12px}
+body.updated .cooking-step-box p{font-size:13px;line-height:1.48;margin:0}
+body.updated .cooking-arrows{display:flex;gap:8px;margin:0}
+body.updated .cooking-arrows button{flex:1;min-height:33px;padding:4px}
+body.updated .cooking-voice{width:100%;border:1px solid var(--line);background:var(--pale);color:var(--deep);border-radius:13px;display:flex;gap:9px;align-items:center;text-align:left;padding:10px 12px}
+body.updated .cooking-voice strong{display:block;font-size:15px;color:var(--deep);line-height:1.25}
+body.updated .cooking-voice small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+body.updated .cooking-voice .secondary-label{font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:2px}
+body.updated .cooking-control-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0}
+body.updated .cooking-control-row .btn{min-height:43px;padding:6px;border-radius:12px}
+body.updated .cooking-control-row .icon-only svg{width:25px;height:25px;stroke-width:2.6}
+body.updated .cooking-control-row .finish{font-size:13px}
+body.updated .nutrition-gateway{width:100%;border:1px solid var(--line);background:var(--pale2);padding:9px 12px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;color:var(--green);font-size:12px;font-weight:700;margin:8px 0}
+body.updated .recipe-detail-screen .card{margin-bottom:8px}
+body.updated .recipe-detail-screen .metric-grid{margin:8px 0!important}
+body.updated .recipe-detail-screen .button-row{margin-top:8px}
+body.updated .nutri-details{border:1px solid var(--line);border-radius:11px;background:#fff;margin-bottom:9px;overflow:hidden}
+body.updated .nutri-details summary{font-weight:700;cursor:pointer;padding:13px 12px;display:flex;justify-content:space-between;align-items:center;list-style:none}
+body.updated .nutri-details summary::-webkit-details-marker{display:none}
+body.updated .nutri-details .nutrition-list{padding:0 12px 10px}
+body.updated .nutri-details[open] summary{border-bottom:1px solid var(--line)}
+
+body.updated .phone:has(.recipe-results) .viewport{overflow:auto}
+@media(max-height:760px){body.updated .cooking-voice{padding:7px 9px}body.updated .cooking-step-box{padding:10px}body.updated .cooking-step-box p{font-size:12px}body.updated .cooking-screen{gap:5px}}
+
+.phone .products-summary .stat-tiles{margin-top:12px;gap:7px}
+.phone .products-summary .stat-tile{padding:10px 2px}
+.phone .product-filters{margin:4px 0 10px}
+.phone .product-expiry{margin-top:0;padding:13px}
+.phone .product-expiry h3{margin:5px 0 10px;font-size:16px}
+.phone .product-expiry .btn{min-height:34px}
+.phone .category-heading{margin-top:11px;margin-bottom:8px}
+.phone .cat-item{padding:8px 10px;margin-bottom:7px}
+.phone .cat-item .iconbox{width:35px;height:35px;border-radius:10px}
+.phone .cat-item .pill{padding:6px 11px}
+.phone .recipe-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:7px 0 13px}
+.phone .recipe-shortcut{min-width:0;min-height:91px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:10px 6px 8px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:5px}
+.phone .recipe-shortcut .shortcut-icon{color:var(--green);width:31px;height:31px;background:var(--pale);border-radius:9px;display:grid;place-items:center;flex:none}
+.phone .recipe-shortcut strong{font-size:12px;line-height:1.15}
+.phone .recipe-shortcut small{color:var(--muted);font-size:9px;line-height:1.18}
+.phone .recipe-shortcut:disabled{opacity:1;color:var(--ink);cursor:default}
+.phone .recipe-shortcut:disabled .shortcut-icon{color:var(--green)}
+.phone .recipe-section-head{margin-top:14px}
+.phone .recipe-section-head .btn{min-height:30px;padding:5px 9px}
+.phone .feature-recipe .feature-art{height:107px}
+.phone .feature-recipe h3{margin:2px 0 1px}
+.phone .feature-recipe .btn{white-space:nowrap}
+.phone .feature-recipe .row{align-items:center}
+.phone .recipe-details-layout .feature-art{height:112px;margin-bottom:10px}
+.phone .recipe-details-layout .metric-grid{margin:11px 0 10px}
+.phone .recipe-details-layout .metric strong{font-size:13px}
+.phone .recipe-details-layout .metric span{font-size:10px}
+.phone .recipe-details-layout .detail-main{margin-bottom:9px}
+.phone .recipe-details-layout .option-row{padding:11px 12px;min-height:64px}
+.phone .recipe-details-layout .option-row strong{font-size:13px}
+.phone .recipe-details-layout .option-row small{font-size:10px}
+.phone .recipe-details-layout .meal-plan-entry{margin-top:2px}
+.phone .month-heading{margin:0 0 11px}
+.phone .month-heading strong{font-size:17px;color:var(--ink)}
+.phone .days{margin-bottom:13px}
+.phone .meal-options-three{grid-template-columns:repeat(3,minmax(0,1fr));margin:0 0 13px}
+.phone .planned-meal-card{padding:15px 13px}
+.phone .planned-meal-card h3{margin:10px 0 5px;font-size:20px}
+.phone .planned-meal-card p{margin:0 0 10px}
+.phone .planned-meal-card .metric-grid{margin:13px 0}
+.phone .planned-meal-card .button-row{margin-top:9px}
+.phone .add-meal-main{margin-top:10px}
+.phone .chat-layout{display:flex;flex-direction:column;min-height:100%;gap:13px}
+.phone .chat-layout .chatbubble{margin:4px 0 0;align-self:flex-end;max-width:94%;background:var(--pale);line-height:1.5}
+.phone .chat-layout .ai-example-reply{margin:10px 0 0;padding:14px}
+.phone .chat-layout .ai-example-reply .line{margin:10px 0}
+.phone .chat-layout .ai-reply-item strong{font-size:12px}
+.phone .chat-layout .ai-reply-item .iconbox{width:39px;height:39px}
+.phone .chat-layout .ai-reply-item .text-small{font-size:11px}
+.phone .chat-layout .ai-composer{margin-top:auto;min-height:49px}
+.phone .chat-layout .ai-composer .link{padding:5px;display:grid;place-items:center}
+body.updated .phone .feature-recipe .feature-art{height:90px}
+body.updated .phone .recipe-details-layout .feature-art{height:102px}
+body.updated .phone .recipe-details-layout .card{padding:10px 11px}
+body.updated .phone .recipe-details-layout .option-row{margin-bottom:7px}
+body.updated .phone .planned-meal-card{padding:12px}
+body.updated .phone .planned-meal-card .metric-grid{margin:11px 0}
+body.updated .phone .recipe-shortcut{min-height:80px}
+html[lang="lt"] .phone .products-summary .text-big{font-size:20px;white-space:nowrap}
+html[lang="lt"] .phone .products-summary .btn.small{font-size:11px;max-width:132px;padding:7px 9px}
+
+.phone-header{padding-top:13px;padding-bottom:15px}
+body.updated .phone-header{padding-top:11px;padding-bottom:12px}
+.phone-header .heading-row h1{font-size:24px}
+.phone-header.simple{padding-top:13px}
+.phone:has(.products-screen) .viewport{overflow:hidden;padding-top:10px;padding-bottom:7px}
+.phone .products-screen{display:flex;flex-direction:column;gap:5px;min-height:0}
+.phone .products-screen .searchbar{height:42px;flex:none}
+.phone .products-screen .products-summary{margin-top:3px!important;margin-bottom:3px;padding:10px 12px}
+.phone .products-screen .products-summary .stat-tiles{margin-top:7px;gap:6px}
+.phone .products-screen .products-summary .stat-tile{padding:6px 2px}
+.phone .products-screen .products-summary .stat-tile strong{font-size:16px}
+.phone .products-screen .products-summary .stat-tile span{font-size:9px}
+.phone .products-screen .text-big{font-size:20px}
+.phone .products-screen .product-filters{margin:1px 0 2px}
+.phone .products-screen .product-filters .pill{padding:5px 12px}
+.phone .products-screen .product-expiry{padding:9px 10px;margin-bottom:0}
+.phone .products-screen .product-expiry h3{font-size:15px;margin:3px 0 6px}
+.phone .products-screen .product-expiry .btn{min-height:29px;padding:5px 8px;font-size:11px}
+.phone .products-screen .category-heading{margin:2px 0 0;font-size:15px}
+.phone .products-screen .cat-item{padding:6px 9px;margin:0}
+.phone .products-screen .cat-item .iconbox{width:31px;height:31px}
+.phone .products-screen .cat-item .pill{padding:4px 8px}
+.phone .products-screen .cat-item .text-strong{font-size:12px}
+.phone .products-screen .cat-item .text-body{font-size:11px}
+.phone:has(.guided-cooking-screen) .viewport{overflow:hidden!important;padding:10px 13px}
+.phone .guided-cooking-screen{display:flex;flex-direction:column;gap:10px;height:100%;min-height:0}
+.phone .guided-cooking-screen .progress{flex:none}
+.phone .guided-cooking-screen .guided-cooking-assistant{margin-top:4px;flex:none;min-height:76px}
+.phone .guided-cooking-screen .guided-cooking-assistant strong{font-size:14px}
+.phone .guided-cooking-screen .guided-cooking-assistant small{font-size:11px;line-height:1.45}
+.phone .guided-cooking-screen .button-row{margin-top:0;flex:none}
+.phone .guided-cooking-screen .guided-cooking-tools .btn{min-height:45px;gap:8px;padding:7px 5px;font-size:12px}
+.phone .guided-cooking-screen .step-body{flex:0 1 auto;min-height:0;margin:2px 0;display:flex;flex-direction:column;gap:10px;padding:15px 15px}
+.phone .guided-cooking-screen .step-body h3{font-size:17px;margin:0}
+.phone .guided-cooking-screen .step-body p{font-size:13px;line-height:1.55}
+.phone .guided-cooking-screen .guided-cooking-navigation{margin-top:3px}
+.phone:has(.nutrition-facts-screen) .viewport{overflow-y:auto!important;overflow-x:hidden!important;padding:10px 14px;overscroll-behavior:contain}
+.phone .nutrition-facts-screen{height:auto;min-height:100%;display:flex;flex-direction:column;gap:14px}
+.phone .nutrition-facts-screen .card{flex:none;margin:0;padding:11px 12px}
+.phone .nutrition-facts-screen h3{margin:0 0 5px;font-size:15px}
+.phone .nutrition-facts-screen p{margin:0 0 5px;font-size:12px}
+.phone .nutrition-facts-screen .nutrition-line{padding:5px 0;font-size:12px}
+.phone .nutrition-facts-screen .nutrition-highlight{flex:1 1 auto;min-height:0}
+.phone .nutrition-facts-screen .nutrient-grid{margin-top:12px;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 12px}
+.phone .nutrition-facts-screen .nutrient-grid div{border:1px solid var(--line);padding:6px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:7px;background:#fff}
+.phone .nutrition-facts-screen .nutrient-grid span{font-size:11px}
+.phone .nutrition-facts-screen .nutrient-grid small{font-size:11px}
+.phone .nutrition-facts-screen .nutrition-actions{margin-top:auto;flex:none;margin-bottom:2px}
+
+@media(max-height:750px){.phone .guided-cooking-screen{gap:7px}.phone .guided-cooking-screen .step-body{padding:10px}.phone .nutrition-facts-screen{gap:8px}.phone .nutrition-facts-screen .nutrient-grid{gap:5px}.phone .nutrition-facts-screen .nutrient-grid div{padding:4px 6px}}
+
+.phone .nutrition-facts-screen .nutrition-line{padding-top:9px;padding-bottom:9px}
+.phone .nutrition-facts-screen .nutrient-grid div{padding-top:12px;padding-bottom:12px}
+
+.phone .nutrition-facts-screen .nutrition-highlight{flex:none;min-height:auto}
+.phone .nutrition-facts-screen .nutrition-actions{margin-top:2px}
+.phone .nutrition-facts-screen .nutrient-grid div{padding:9px 10px}
+.phone .guided-cooking-screen .step-body{min-height:170px;flex:0 0 auto}
+@media(max-height:770px){.phone .guided-cooking-screen .step-body{min-height:130px}.phone .nutrition-facts-screen .nutrient-grid div{padding:5px 6px}}
+
+@media(max-height:770px){
+ .phone .products-screen{gap:3px}
+ .phone .products-screen .searchbar{height:38px}
+ .phone .products-screen .products-summary{padding:7px 10px}
+ .phone .products-screen .products-summary .stat-tile{padding:4px 1px}
+ .phone .products-screen .product-expiry{padding:6px 9px}
+ .phone .products-screen .product-expiry h3{margin:1px 0 3px}
+ .phone .products-screen .cat-item{height:35px;padding:2px 7px;margin:0}
+ .phone .products-screen .cat-item .iconbox{width:26px;height:26px}
+ .phone .products-screen .category-heading{margin:0;font-size:14px}
+}
+
+.phone .phone-header,.phone .phone-header.simple,
+body.updated .phone .phone-header,body.updated .phone .phone-header.simple{
+  background:#fff;color:var(--ink);border-radius:0;border-bottom:1px solid var(--line);
+  padding:16px 20px 14px;
+}
+.phone .phone-header .heading-row h1,body.updated .phone .phone-header h1{
+  color:var(--ink);font-size:24px;letter-spacing:-.45px;line-height:1.2;font-weight:700;
+}
+.phone .section-title,.phone .card h3,.phone .option-row strong{color:var(--ink);letter-spacing:-.15px}
+.phone .text-strong{color:var(--ink)}
+.phone .kicker{color:var(--muted)}
+.phone .phone-header .subtitle{color:var(--muted)}
+.phone .searchbar,.phone .card,.phone .option-row,.phone .cat-item,.phone .recipe-tile{
+  border-color:var(--line);
+}
+.phone .bottom-nav{border-color:var(--line)}
+.phone .nav-btn{color:#526657}
+.phone .nav-btn.active{color:var(--green)}
+
+.phone:has(.products-screen) .viewport{overflow:hidden}
+.phone .products-screen{height:100%;}
+.phone .products-screen .cat-item{
+  flex:1 1 0;min-height:43px;max-height:83px;
+  padding:9px 12px;margin:0;
+  border-radius:15px;
+}
+.phone .products-screen .cat-item .iconbox{height:39px;width:39px;border-radius:12px}
+.phone .products-screen .cat-item .text-strong{font-size:14px}
+.phone .products-screen .cat-item .text-body{font-size:13px}
+.phone .products-screen .cat-item .pill{font-size:12px;padding:7px 11px}
+.phone .products-screen .category-heading{margin:5px 0 0;font-size:16px}
+body.updated .phone .products-screen .cat-item .iconbox svg{stroke-width:2.1}
+
+.phone:has(.receipt-options-screen) .viewport{overflow:hidden;padding-top:14px;padding-bottom:14px}
+.phone .receipt-options-screen{height:100%;display:flex;flex-direction:column;gap:12px}
+.phone .receipt-options-screen .option-row{
+  flex:1 1 0;min-height:85px;max-height:150px;margin:0;
+  border-radius:17px;padding:17px 15px;gap:14px;
+}
+.phone .receipt-options-screen .iconbox{width:51px;height:51px;border-radius:13px}
+.phone .receipt-options-screen .iconbox svg{width:25px;height:25px;stroke-width:2.1}
+.phone .receipt-options-screen .option-row strong{font-size:16px}
+.phone .receipt-options-screen .option-row small{font-size:12px;line-height:1.35;margin-top:5px}
+
+.phone:has(.chat-layout) .viewport{overflow-y:auto;overflow-x:hidden;padding:17px 17px 14px;overscroll-behavior:contain}
+.phone .chat-layout{height:auto;min-height:100%;gap:18px;padding:5px 3px 0}
+.phone .chat-layout .chatbubble-user{
+  align-self:flex-end;max-width:86%;position:relative;
+  margin:3px 0 0;padding:15px 17px;
+  border-radius:16px 16px 5px 16px;
+  background:var(--pale);font-size:13px;line-height:1.55;
+}
+.phone .chat-layout .chatbubble-user::after{
+  content:"";position:absolute;right:7px;bottom:-9px;
+  border-top:12px solid var(--pale);border-left:12px solid transparent;
+}
+.phone .chat-layout .ai-example-reply{
+  position:relative;align-self:flex-start;width:94%;
+  border-radius:16px 16px 16px 5px;
+  margin:13px 0 0;padding:16px 15px;
+}
+.phone .chat-layout .ai-example-reply::after{
+  content:"";position:absolute;left:7px;bottom:-9px;
+  border-top:12px solid #fff;border-right:12px solid transparent;
+}
+.phone .chat-layout .ai-reply-item{gap:9px;align-items:flex-start}
+.phone .chat-layout .ai-reply-item .grow{min-width:0}
+.phone .chat-layout .ai-reply-item .text-small{font-size:11px;line-height:1.45;color:var(--muted)}
+.phone .chat-layout .ai-reply-item .pill{font-size:10px;padding:7px 8px}
+.phone .chat-layout .ai-composer{margin-top:auto;min-height:50px;flex:none}
+.phone .chat-layout .ai-composer .link{color:var(--green)}
+
+.phone:has(.recipe-detail-screen) .viewport{overflow:hidden!important;padding:10px 14px 8px!important}
+.phone .recipe-detail-screen{display:flex;flex-direction:column;gap:6px;min-width:0}
+.phone .recipe-detail-screen .card{margin:0;padding:11px 12px}
+.phone .recipe-detail-screen .feature-art,
+.phone .recipe-detail-screen.recipe-details-layout .feature-art{height:82px;margin:0 0 7px}
+.phone .recipe-detail-screen .feature-art svg{height:65px;width:65px}
+.phone .recipe-detail-screen .detail-main h3{margin:1px 0 2px;font-size:17px}
+.phone .recipe-detail-screen .detail-main p{margin:0;font-size:12px}
+.phone .recipe-detail-screen .metric-grid{margin:7px 0!important}
+.phone .recipe-detail-screen .metric-grid .metric{padding:7px 1px}
+.phone .recipe-detail-screen .metric-grid strong{font-size:13px}
+.phone .recipe-detail-screen .metric-grid span{font-size:10px}
+.phone .recipe-detail-screen .button-row{margin:7px 0 0}
+.phone .recipe-detail-screen .button-row .btn{min-height:36px;padding:7px 10px}
+.phone .recipe-detail-screen .option-row{margin:0;min-height:53px;padding:9px 10px}
+.phone .recipe-detail-screen .option-row .iconbox{width:35px;height:35px}
+.phone .recipe-detail-screen .option-row strong{font-size:12px}
+.phone .recipe-detail-screen .option-row small{font-size:10px;margin-top:3px}
+.phone .recipe-detail-screen .meal-plan-entry{min-height:38px;padding:8px 10px;margin-top:0}
+@media(max-height:740px){
+ .phone .products-screen .cat-item{min-height:36px;padding:3px 8px}
+ .phone .products-screen .cat-item .iconbox{width:29px;height:29px}
+ .phone .products-screen .cat-item .text-strong{font-size:12px}
+ .phone .receipt-options-screen{gap:8px}
+ .phone .receipt-options-screen .option-row{min-height:72px;padding:9px 12px}
+ .phone .recipe-detail-screen .feature-art{height:60px!important}
+ .phone .recipe-detail-screen .feature-art svg{height:50px;width:50px}
+ .phone .chat-layout{gap:10px}
+ .phone .chat-layout .chatbubble-user{padding:10px 12px}
+ .phone .chat-layout .ai-example-reply{padding:11px 10px}
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+'use strict';
+const ICONS={
+ box:'<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+ camera:'<path d="M14.4 4 16 6h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l1.6-2Z"/><circle cx="12" cy="13" r="3.4"/>',
+ list:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h5"/>',
+ cutlery:'<path d="M4 2v7M2 2v7M6 2v7M4 9v13M15 2v20M20 2c-4 3-4 9 0 12"/>',
+ pot:'<path d="M4 11h16v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3Z"/><path d="M2 11h20M9 6h6M12 6v5M1 15h3M20 15h3"/>',
+ apple:'<path d="M12 7c-2-3-5-3-7-1-4 4-2 13 2 15 2 1 3-1 5-1s3 2 5 1c4-2 6-11 2-15-2-2-5-2-7 1Z"/><path d="M12 7c0-3 2-5 5-5M12 6c-2-1-4-2-6-1"/>',
+ fish:'<path d="M3 12c4-7 11-9 17 0-6 9-13 7-17 0ZM3 12 1 7v10l2-5ZM10 10h.01"/><path d="M11 7c1 2 1 8 0 10"/>',
+ milk:'<path d="M8 2h8v4l3 4v11H5V10l3-4Z"/><path d="M8 6h8M5 12h14M9 16h6"/>',
+ chicken:'<path d="M8 8a4 4 0 0 1 6-3 5 5 0 0 1 4 5c4 3 3 9-2 11H8c-4-2-6-8-3-12 1-1 2-1 3-1Z"/><path d="M8 8 4 10l4 2M15 8h.01M10 14c2 2 5 2 7-1M9 21l-1 2M15 21l1 2"/>',
+ book:'<path d="M12 7c-2-2-6-3-10-2v15c4-1 8 0 10 2 2-2 6-3 10-2V5c-4-1-8 0-10 2ZM12 7v15"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h2M14 15h2"/>',
+ message:'<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.7-5.2a9 9 0 0 1-1.2-4.3A8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+ left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>', plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
+ mic:'<rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
+ check:'<path d="m4 12 5 5L20 6"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 16h.01"/>',
+ cart:'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 2h3l2.4 12h13l2-9H5"/>',
+ sliders:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="var(--white)"/><circle cx="15" cy="17" r="2" fill="var(--white)"/>',
+ upload:'<path d="M12 17V3m-5 5 5-5 5 5M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/>',
+ bookmark:'<path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-5-7 5Z"/>',
+ link:'<path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1 1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1-1"/>',
+ text:'<path d="M5 4h14M12 4v16M8 20h8"/>',
+ plate:'<path d="M7 3v7M4 3v7M10 3v7M7 10v11M17 3v18M21 3c-4 3-4 9 0 12"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+ refresh:'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 9a8 8 0 0 1 14-2l1 5M4 12l1 5a8 8 0 0 0 14-2"/>',
+ edit:'<path d="m4 16-1 5 5-1L20 8l-4-4Z"/><path d="m14 6 4 4"/>',
+ photo:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="2"/><path d="m21 15-6-6L4 20"/>',
+ heart:'<path d="M20.8 4.8a5 5 0 0 0-7.1 0L12 6.5l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21l8.8-9.1a5 5 0 0 0 0-7.1Z"/>',
+ wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 15h2"/>',
+ chef:'<path d="M6 14a5 5 0 0 1-2-9 5 5 0 0 1 9-1 5 5 0 0 1 7 5c0 2-1 4-3 5v6H6Z"/><path d="M6 16h11"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+ play:'<path d="m7 4 13 8-13 8Z"/>',
+ volume:'<path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/>',
+ arrowup:'<path d="m6 14 6-6 6 6"/>',
+ trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',
+ receipt:'<path d="M5 2h14v20l-3-2-4 2-4-2-3 2Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+ checkcircle:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+ filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',
+ more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+};
+function icon(name,size=20){return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]||ICONS.info}</svg>`}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const RECIPES={
+ chicken:{name:'Sweet and Sour Chicken',mins:50,servings:4,protein:'31.8 g',carbs:'27.4 g',kcal:410,ingredients:['Chicken breast — 600 g','Bell pepper — 1','Carrot — 1','Spring onions — 4','Pineapple — 2 slices','Rice — 200 g','Tomato sauce — 3 tbsp'],steps:[['Prepare the vegetables','Cut the green bell pepper in half and remove the seeds. Chop it into large pieces. Cut the spring onions and carrot, then prepare the pineapple slices.'],['Prepare the chicken','Cut the chicken into evenly sized pieces. Wash your hands and keep raw chicken away from ready-to-eat food.'],['Cook the chicken','Heat a little oil in a pan and cook the chicken until completely cooked through.'],['Add the vegetables','Add carrot and pepper. Stir for a few minutes until tender.'],['Mix the sauce','Stir tomato sauce with a little vinegar and pineapple juice.'],['Combine','Add the sauce and pineapple. Simmer briefly, stirring gently.'],['Serve','Serve with cooked rice. Taste and save any recipe adjustments for next time.']]},
+ onions:{name:'Stuffed Onions',mins:90,servings:6,protein:'19.6 g',carbs:'32.3 g',kcal:392,ingredients:['Large yellow onions — 6','Minced turkey — 350 g','Rice — 170 g','Tomato paste — 2 tbsp','Olive oil — 2 tbsp','Parsley — 1 bunch','Spices — to taste'],steps:[['Prepare the onions','Peel six large onions. Trim the ends, blanch in boiling water for 10–15 minutes, then cool.'],['Separate the layers','Gently separate the softened onion layers without tearing them.'],['Prepare the filling','Combine rice, minced turkey, parsley and seasonings.'],['Fill the onions','Place a small amount of filling inside each onion layer and roll gently.'],['Arrange','Place stuffed onions close together in a cooking pot.'],['Add sauce','Mix tomato paste with water and olive oil; pour over the onions.'],['Cook and serve','Simmer until the filling is fully cooked. Serve warm.']]},
+ salad:{name:'Papaya Salad',mins:15,servings:2,protein:'3.2 g',carbs:'18.4 g',kcal:135,ingredients:['Papaya — 1','Lime — 1','Carrot — 1','Fresh herbs','Peanuts — optional'],steps:[['Prepare ingredients','Cut the papaya and carrot into fine strips.'],['Mix dressing','Add lime juice and seasonings.'],['Toss and serve','Combine the ingredients and serve fresh.']]}
+};
+const NUTRIENTS=[['Energy','392 kcal'],['Protein','19.6 g'],['Total carbohydrates','32.3 g'],['Fibre','6.1 g'],['Net carbohydrates','26.2 g'],['Fat','20.5 g']];
+const MICRO=[['Iron','2.8 mg'],['Calcium','84 mg'],['Vitamin A','410 µg'],['Vitamin C','12 mg'],['Vitamin B12','0.3 µg'],['Folate','72 µg'],['Potassium','640 mg']];
+const RECEIPT_ITEMS=[{id:1,name:'Organic milk',qty:1,unit:'carton',price:5.99,selected:true},{id:2,name:'Whole grain bread',qty:1,unit:'loaf',price:3.49,selected:true},{id:3,name:'Bananas',qty:1,unit:'bunch',price:3.98,selected:true},{id:4,name:'Tomatoes',qty:1,unit:'pack',price:1.14,selected:true}];
+let state;
+
+/* English-to-Lithuanian UI strings; application state is language-independent. */
+const LT_COPY = {
+  "": "Šiandien pridėta: pienas, duona, bananai ir pomidorai.",
+  "1 bunch": "1 ryšulėlis",
+  "1 bunch bananas · 1 pack tomatoes": "1 kekė bananų · 1 pakuotė pomidorų",
+  "1 carton": "1 pakelis",
+  "1 carton milk · 1 loaf bread": "1 pakelis pieno · 1 kepalas duonos",
+  "1 day left": "Liko 1 diena",
+  "1 loaf": "1 kepalas",
+  "1 pack": "1 pakuotė",
+  "1 recipe": "1 receptas",
+  "4 products": "4 produktai",
+  "4 servings": "4 porcijos",
+  "Activate the camera to ask about an ingredient or cooking step": "Įjungti kamerą ir paklausti apie ingredientą ar gaminimo žingsnį",
+  "Adaptation preference:": "Pritaikymo pasirinkimas:",
+  "Add": "Pridėti",
+  "Add a recipe": "Pridėti receptą",
+  "Add an item...": "Pridėkite produktą...",
+  "Add carrot and pepper. Stir for a few minutes until tender.": "Sudėkite morką ir papriką. Maišydami kepkite kelias minutes, kol suminkštės.",
+  "Add groceries by voice": "Pridėti pirkinius balsu",
+  "Add groceries from a receipt": "Pridėti produktus iš čekio",
+  "Add lime juice and seasonings.": "Įpilkite žaliųjų citrinų sulčių ir sudėkite prieskonius.",
+  "Add manually": "Pridėti rankiniu būdu",
+  "Add new meal": "Pridėti naują patiekalą",
+  "Add recipe": "Pridėti receptą",
+  "Add sauce": "Įpilkite padažo",
+  "Add the sauce and pineapple. Simmer briefly, stirring gently.": "Sudėkite padažą ir ananasus. Trumpai patroškinkite švelniai maišydami.",
+  "Add the vegetables": "Sudėkite daržoves",
+  "Add to list": "Pridėti į sąrašą",
+  "Add to meal plan": "Įtraukti į maitinimosi planą",
+  "Add to plan": "Įtraukti į planą",
+  "Add typed item": "Pridėti įrašytą produktą",
+  "Add your own recipe": "Pridėti savo receptą",
+  "All": "Visi",
+  "All items for planned meals are on your list.": "Visi suplanuotiems patiekalams reikalingi produktai jau sąraše.",
+  "All recipes": "Visi receptai",
+  "Arrange": "Sudėkite į puodą",
+  "Ask Chef": "Klausti Chef",
+  "Ask Chef to adapt": "Paprašyti „Chef“ pritaikyti receptą",
+  "Ask Chef to adapt this recipe": "Paprašyti Chef pritaikyti receptą",
+  "Ask Chef...": "Klauskite Chef...",
+  "Back": "Atgal",
+  "Bananas": "Bananai",
+  "Bell pepper — 1": "Paprika — 1",
+  "Breakfast": "Pusryčiai",
+  "Budget (€)": "Biudžetas (€)",
+  "Budget left": "Liko biudžeto",
+  "Calcium": "Kalcis",
+  "Camera": "Kamera",
+  "Camera questions": "Klausimai su kamera",
+  "Cancel": "Atšaukti",
+  "Carrot — 1": "Morka — 1",
+  "Carrots": "Morkos",
+  "Categories": "Kategorijos",
+  "Chef": "Chef",
+  "Chef AI": "Chef DI",
+  "Chef Kitchen": "Chef Kitchen",
+  "Chef Kitchen app": "Chef Kitchen programėlė",
+  "Chef's suggestion": "Chef pasiūlymas",
+  "Chicken breast — 600 g": "Vištienos krūtinėlė — 600 g",
+  "Chicken illustration": "Vištienos iliustracija",
+  "Choose an action to continue.": "Pasirinkite veiksmą, kad tęstumėte.",
+  "Choose an existing photo": "Pasirinkite turimą nuotrauką",
+  "Clear search": "Išvalyti paiešką",
+  "Close": "Uždaryti",
+  "Combine": "Sumaišykite viską",
+  "Combine rice, minced turkey, parsley and seasonings.": "Sumaišykite ryžius, maltą kalakutieną, petražoles ir prieskonius.",
+  "Combine the ingredients and serve fresh.": "Sumaišykite ingredientus ir iš karto patiekite.",
+  "Confirm": "Patvirtinti",
+  "Cook": "Gaminti",
+  "Cook and serve": "Išvirkite ir patiekite",
+  "Cook the chicken": "Kepkite vištieną",
+  "Cooking mode": "Gaminimo režimas",
+  "Cut the chicken into evenly sized pieces. Wash your hands and keep raw chicken away from ready-to-eat food.": "Supjaustykite vištieną vienodo dydžio gabalėliais. Nusiplaukite rankas ir laikykite žalią vištieną atskirai nuo paruošto vartoti maisto.",
+  "Cut the green bell pepper in half and remove the seeds. Chop it into large pieces. Cut the spring onions and carrot, then prepare the pineapple slices.": "Perpjaukite žaliąją papriką pusiau ir išimkite sėklas. Supjaustykite stambiais gabalėliais, tada supjaustykite laiškinius svogūnus ir morką. Paruoškite ananaso griežinėlius.",
+  "Cut the papaya and carrot into fine strips.": "Supjaustykite papają ir morką plonomis juostelėmis.",
+  "Dairy": "Pieno produktai",
+  "Diet, accessibility, ingredients or taste": "Mityba, prieinamumas, ingredientai ar skonis",
+  "Dinner": "Vakarienė",
+  "Discover recipes": "Atraskite receptus",
+  "Duration in seconds": "Trukmė sekundėmis",
+  "Edit": "Redaguoti",
+  "Edit product": "Redaguoti produktą",
+  "Energy": "Energija",
+  "Energy, protein, carbohydrates and more": "Kalorijos, baltymai, angliavandeniai ir daugiau",
+  "English prototype version": "Angliška prototipo versija",
+  "Enter a product": "Įveskite produktą",
+  "Enter a product yourself": "Įveskite produktą patys",
+  "Estimated extra groceries €5–€8": "Papildomi pirkiniai kainuotų apie 5–8 €",
+  "Example question: “Are these vegetables chopped small enough?”": "Klausimo pavyzdys: „Ar šios daržovės pakankamai smulkiai supjaustytos?“",
+  "Expires soon": "Netrukus baigsis galiojimas",
+  "Explore": "Peržiūrėti",
+  "Explore recipes": "Peržiūrėti receptus",
+  "Farm milk": "Ūkininkų pienas",
+  "Fat": "Riebalai",
+  "Fibre": "Skaidulos",
+  "Fill the onions": "Įdarykite svogūnus",
+  "Find": "Ieškoti",
+  "Find a recipe": "Rasti receptą",
+  "Find a recipe and use cooking guidance": "Rasti receptą ir naudotis gaminimo pagalba",
+  "Find a recipe with milk": "Rasti receptą su pienu",
+  "Find a recipe, open cooking mode, use the AI help and set a timer. End by leaving feedback on the meal.": "Raskite receptą, įjunkite gaminimo režimą, pasinaudokite DI pagalba ir nustatykite laikmatį. Pabaigoje pateikite atsiliepimą apie patiekalą.",
+  "Find recipes": "Ieškoti receptų",
+  "Find the Stuffed Onions recipe, review its nutrition information, and add it to a meal plan.": "Raskite įdarytų svogūnų receptą, peržiūrėkite jo maistinę vertę ir įtraukite į maitinimosi planą.",
+  "Finish": "Baigti",
+  "Finish cooking": "Baigti gaminimą",
+  "Folate": "Folio rūgštis",
+  "For example: reduce chili next time": "Pavyzdžiui: kitą kartą dėkite mažiau aitriosios paprikos",
+  "For planned meal": "Suplanuotam patiekalui",
+  "Fresh herbs": "Šviežios žolelės",
+  "Fri": "Pn",
+  "From gallery": "Iš galerijos",
+  "From pantry": "Iš atsargų",
+  "Fruit & vegetables": "Vaisiai ir daržovės",
+  "Gently separate the softened onion layers without tearing them.": "Atsargiai atskirkite suminkštėjusius svogūnų sluoksnius jų nesuplėšydami.",
+  "Groceries": "Pirkiniai",
+  "Have a conversation or ask cooking questions": "Bendrauti arba klausti apie gaminimą",
+  "Heat a little oil in a pan and cook the chicken until completely cooked through.": "Įkaitinkite keptuvėje šiek tiek aliejaus ir kepkite vištieną, kol ji visiškai iškeps.",
+  "Here is what I can do:": "Štai kuo galiu padėti:",
+  "Highlighted nutrients": "Svarbiausios maistinės medžiagos",
+  "How did the meal turn out?": "Kaip pavyko patiekalas?",
+  "I bought groceries. Add everything from my receipt to my pantry, then plan 3 meals for under €10 using what I bought.": "Nusipirkau maisto. Įtrauk produktus iš čekio į atsargas ir suplanuok tris patiekalus už mažiau nei 10 €, naudodamas mano pirkinius.",
+  "Import a receipt by taking a photo, check the recognized products, confirm the import and view the updated pantry.": "Importuokite čekį jį nufotografavę, patikrinkite atpažintus produktus, patvirtinkite importavimą ir peržiūrėkite atnaujintas atsargas.",
+  "Import complete": "Importavimas baigtas",
+  "Import receipt": "Importuoti čekį",
+  "Ingredients": "Ingredientai",
+  "Iron": "Geležis",
+  "Large yellow onions — 6": "Dideli geltonieji svogūnai — 6",
+  "Lime — 1": "Žalioji citrina — 1",
+  "Lithuanian prototype version": "Lietuviška prototipo versija",
+  "Lunch": "Pietūs",
+  "MEAL PLAN": "MAITINIMOSI PLANAS",
+  "Macronutrients": "Makroelementai",
+  "Main navigation": "Pagrindinė navigacija",
+  "Meal plan": "Maitinimosi planas",
+  "Minced turkey — 350 g": "Malta kalakutiena — 350 g",
+  "Mix dressing": "Sumaišykite užpilą",
+  "Mix the sauce": "Sumaišykite padažą",
+  "Mix tomato paste with water and olive oil; pour over the onions.": "Sumaišykite pomidorų pastą su vandeniu ir alyvuogių aliejumi, užpilkite ant svogūnų.",
+  "Mon": "Pr",
+  "Monthly food budget": "Mėnesio maisto biudžetas",
+  "More recipes": "Daugiau receptų",
+  "Move to the next or previous cooking step": "Balsu pereiti prie kito arba ankstesnio gaminimo žingsnio",
+  "My recipes": "Mano receptai",
+  "NOVEMBER": "LAPKRITIS",
+  "Net carbohydrates": "Grynieji angliavandeniai",
+  "New item": "Naujas produktas",
+  "Next": "Toliau",
+  "Next step": "Kitas žingsnis",
+  "No matching recipes. Try another search.": "Receptų nerasta. Pabandykite kitą paiešką.",
+  "No meal planned": "Patiekalas nesuplanuotas",
+  "No meal planned for this time.": "Šiam laikui patiekalas nesuplanuotas.",
+  "Nutrition": "Mityba",
+  "Nutrition details": "Išsami maistinė vertė",
+  "Nutrition facts": "Maistinė vertė",
+  "Olive oil — 2 tbsp": "Alyvuogių aliejus — 2 valg. š.",
+  "Open the camera": "Atidaryti kamerą",
+  "Options": "Parinktys",
+  "Organic milk": "Ekologiškas pienas",
+  "PANTRY IMPORT": "ATSARGŲ PAPILDYMAS",
+  "Papaya Salad": "Papajų salotos",
+  "Papaya — 1": "Papaja — 1",
+  "Parsley": "Petražolės",
+  "Parsley — 1 bunch": "Petražolės — 1 ryšulėlis",
+  "Peanuts — optional": "Žemės riešutai — nebūtina",
+  "Peel six large onions. Trim the ends, blanch in boiling water for 10–15 minutes, then cool.": "Nulupkite šešis didelius svogūnus. Nupjaukite galus, 10–15 minučių apvirkite verdančiame vandenyje, tada atvėsinkite.",
+  "Pineapple — 2 slices": "Ananasas — 2 griežinėliai",
+  "Place a small amount of filling inside each onion layer and roll gently.": "Į kiekvieną svogūno sluoksnį dėkite šiek tiek įdaro ir švelniai susukite.",
+  "Place stuffed onions close together in a cooking pot.": "Įdarytus svogūnus glaudžiai sudėkite į puodą.",
+  "Place the full receipt inside the frame": "Įtalpinkite visą čekį į rėmelį",
+  "Plan": "Planas",
+  "Planned dinner": "Suplanuota vakarienė",
+  "Planned meal": "Suplanuotas patiekalas",
+  "Potassium": "Kalis",
+  "Prepare ingredients": "Paruoškite ingredientus",
+  "Prepare the chicken": "Paruoškite vištieną",
+  "Prepare the filling": "Paruoškite įdarą",
+  "Prepare the onions": "Paruoškite svogūnus",
+  "Prepare the vegetables": "Paruoškite daržoves",
+  "Price (€)": "Kaina (€)",
+  "Product": "Produktas",
+  "Product name": "Produkto pavadinimas",
+  "Products": "Produktai",
+  "Products added": "Produktai pridėti",
+  "Protein": "Baltymai",
+  "Prototype options": "Prototipo parinktys",
+  "Quantity": "Kiekis",
+  "Receipt camera": "Čekio fotografavimas",
+  "Receipt history": "Čekių istorija",
+  "Recipe": "Receptas",
+  "Recipe detail": "Recepto informacija",
+  "Recipe details": "Recepto informacija",
+  "Recipe feedback": "Atsiliepimas apie receptą",
+  "Recipes": "Receptai",
+  "Recommended for you": "Rekomenduojama jums",
+  "Reset": "Atstatyti",
+  "Review": "Peržiūrėti",
+  "Review nutrition and plan a meal": "Peržiūrėti maistinę vertę ir suplanuoti patiekalą",
+  "Review products": "Peržiūrėti produktus",
+  "Rice — 170 g": "Ryžiai — 170 g",
+  "Rice — 200 g": "Ryžiai — 200 g",
+  "Sat": "Št",
+  "Save a preference so Chef can suggest changes next time.": "Išsaugokite pageidavimą, kad kitą kartą Chef galėtų pasiūlyti pakeitimų.",
+  "Save budget": "Išsaugoti biudžetą",
+  "Save changes": "Išsaugoti pakeitimus",
+  "Save feedback": "Išsaugoti atsiliepimą",
+  "Saved": "Išsaugoti",
+  "Saved recipes": "Išsaugoti receptai",
+  "Say": "Pasakykite",
+  "Say “Chef” to talk": "Sakykite „Chef“, kad kalbėtumėte",
+  "Say “Chef” to talk, navigate steps, set timers or ask camera questions": "Sakykite „Chef“, kad kalbėtumėte, keistumėte žingsnius, nustatytumėte laikmatį ar klaustumėte naudodami kamerą",
+  "Scan": "Skenuoti",
+  "Seafood": "Žuvis ir jūros gėrybės",
+  "Search products": "Ieškoti produktų",
+  "Search products...": "Ieškoti produktų...",
+  "Search recipes": "Ieškoti receptų",
+  "Search recipes or ingredients": "Ieškoti receptų arba ingredientų",
+  "Search results": "Paieškos rezultatai",
+  "Select all": "Pažymėti visus",
+  "Selected total": "Pasirinktų produktų suma",
+  "Send request": "Siųsti užklausą",
+  "Separate the layers": "Atskirkite sluoksnius",
+  "Serve": "Patiekite",
+  "Serve with cooked rice. Taste and save any recipe adjustments for next time.": "Patiekite su virtais ryžiais. Paragaukite ir išsaugokite recepto pakeitimus kitam kartui.",
+  "Set a cooking timer": "Nustatyti gaminimo laikmatį",
+  "Set a timer or read a step aloud": "Nustatyti laikmatį arba išklausyti žingsnį",
+  "Set timer": "Nustatyti laikmatį",
+  "Simmer until the filling is fully cooked. Serve warm.": "Troškinkite, kol įdaras visiškai išvirs. Patiekite šiltą.",
+  "Skip": "Praleisti",
+  "Spices — to taste": "Prieskoniai — pagal skonį",
+  "Spring onions — 4": "Laiškiniai svogūnai — 4",
+  "Stir tomato sauce with a little vinegar and pineapple juice.": "Sumaišykite pomidorų padažą su trupučiu acto ir ananasų sulčių.",
+  "Stuffed Onions": "Įdaryti svogūnai · porcijoje",
+  "Sun": "Sk",
+  "Swap": "Pakeisti",
+  "Sweet and Sour Chicken": "Saldžiarūgštė vištiena",
+  "Take photo": "Fotografuoti",
+  "Take receipt photo": "Fotografuoti čekį",
+  "Tap an item to include or exclude it.": "Paspauskite produktą, kad įtrauktumėte arba pašalintumėte jį.",
+  "Task 2 · Personalized cooking": "2 užduotis · Pritaikytas gaminimas",
+  "Task 3 · Nutrition": "3 užduotis · Mityba",
+  "This month": "Šį mėnesį",
+  "Thu": "Kt",
+  "Timer": "Laikmatis",
+  "Timer preview": "Laikmačio peržiūra",
+  "Timer preview: ": "Laikmačio peržiūra: ",
+  "Tomato paste — 2 tbsp": "Pomidorų pasta — 2 valg. š.",
+  "Tomato sauce — 3 tbsp": "Pomidorų padažas — 3 valg. š.",
+  "Tomatoes": "Pomidorai",
+  "Toss and serve": "Sumaišykite ir patiekite",
+  "Total carbohydrates": "Visi angliavandeniai",
+  "Tue": "An",
+  "URL, photo, text, voice": "Nuoroda, nuotrauka, tekstas, balsas",
+  "Urgent (1)": "Skubu (1)",
+  "Usability test tasks": "Naudojamumo testavimo užduotys",
+  "Use soon": "Suvartoti netrukus",
+  "Values per serving": "Vertės vienai porcijai",
+  "View": "Peržiūrėti",
+  "View all": "Peržiūrėti visus",
+  "View details": "Peržiūrėti receptą",
+  "View month": "Peržiūrėti mėnesį",
+  "View previous imports": "Peržiūrėti ankstesnius importavimus",
+  "View products": "Peržiūrėti produktus",
+  "View stats": "Peržiūrėti statistiką",
+  "View week": "Peržiūrėti savaitę",
+  "Visual questions": "Vaizdiniai klausimai",
+  "Vitamin A": "Vitaminas A",
+  "Vitamin B12": "Vitaminas B12",
+  "Vitamin C": "Vitaminas C",
+  "Voice assistant & control": "Balso asistentas ir valdymas",
+  "Wed": "Tr",
+  "Whole grain bread": "Viso grūdo duona",
+  "You could show Chef an ingredient or cooking stage and ask a question.": "Galite parodyti Chef ingredientą ar gaminimo etapą ir užduoti klausimą.",
+  "Your inventory and grocery spending have been updated.": "Jūsų atsargos ir išlaidos maistui atnaujintos.",
+  "Your notes": "Jūsų pastabos",
+  "carbs": "angliavandeniai",
+  "fat": "riebalai",
+  "fibre": "skaidulos",
+  "kcal": "kcal",
+  "protein": "baltymai",
+  "time": "trukmė",
+  "to activate voice control. You can:": "balso valdymui įjungti. Galite:",
+  "“Chef”": "„Chef“"
+};
+function ltText(input){
+ const src=String(input||'').trim();
+ if(!src)return src;
+ if(Object.prototype.hasOwnProperty.call(LT_COPY,src))return LT_COPY[src];
+ let m;
+ if(m=src.match(/^(\d+) of (\d+) screens viewed$/))return `Peržiūrėta ${m[1]} iš ${m[2]} ekranų`;
+ if(m=src.match(/^(\d+) of (\d+)$/))return `${m[1]} iš ${m[2]}`;
+ if(m=src.match(/^Step (\d+) of (\d+)$/i))return `${m[1]} iš ${m[2]} žingsnių`;
+ if(m=src.match(/^\€([\d.,]+) spent$/))return `Išleista ${m[1]} €`;
+ if(m=src.match(/^\€([\d.,]+) remaining$/))return `Liko ${m[1]} €`;
+ if(m=src.match(/^of €([\d.,]+)$/))return `iš ${m[1]} €`;
+ if(m=src.match(/^(\d+) min · (\d+) servings · Medium$/))return `${m[1]} min. · ${m[2]} porcijos · vidutinis sudėtingumas`;
+ if(m=src.match(/^(\d+) min · (\d+) servings$/))return `${m[1]} min. · ${m[2]} porcijos`;
+ if(m=src.match(/^(\d+) servings$/))return `${m[1]} porcijos`;
+ if(m=src.match(/^(\d+) min$/))return `${m[1]} min.`;
+ if(m=src.match(/^(\d+) products recognised$/))return `Atpažinti ${m[1]} produktai`;
+ if(m=src.match(/^(\d+) products$/i))return `${m[1]} produktai`;
+ if(m=src.match(/^([\d.,]+) (?:pcs|cartons|packs|tubs|loaves|bunches)$/i))return `${m[1]} vnt.`;
+ if(m=src.match(/^Select (.+)$/))return `Pažymėti: ${ltText(m[1])}`;
+ if(m=src.match(/^Deselect (.+)$/))return `Atžymėti: ${ltText(m[1])}`;
+ if(m=src.match(/^Edit (.+)$/))return `Redaguoti: ${ltText(m[1])}`;
+ if(m=src.match(/^Open (.+)$/))return `Atidaryti: ${ltText(m[1])}`;
+ if(m=src.match(/^Remove (.+)$/))return `Pašalinti: ${ltText(m[1])}`;
+ if(m=src.match(/^Mark (.+) done$/))return `Pažymėti kaip nupirktą: ${ltText(m[1])}`;
+ if(m=src.match(/^Timer running:\s*$/))return 'Laikmatis veikia:';
+ if(m=src.match(/^Timer preview: (\d+) seconds \(not running\)$/))return `Laikmačio peržiūra: ${m[1]} sek. (nepaleistas)`;
+ if(m=src.match(/^Adaptation preference: (.+)$/))return `Pritaikymo pasirinkimas: ${ltText(m[1])}`;
+ if(m=src.match(/^([^·]+) · Planned$/))return `${ltText(m[1])} · Suplanuota`;
+ if(m=src.match(/^([^·]+) · No meal planned$/))return `${ltText(m[1])} · Patiekalas nesuplanuotas`;
+ if(m=src.match(/^(.+) · per serving$/))return `${ltText(m[1])} · vienai porcijai`;
+ return src;
+}
+function translateVisibleCopy(root){
+ const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const textNodes=[];
+ while(walk.nextNode())textNodes.push(walk.currentNode);
+ for(const node of textNodes){
+   const raw=node.nodeValue;
+   const trimmed=raw.trim();
+   if(!trimmed)continue;
+   const translated=ltText(trimmed);
+   if(translated!==trimmed){
+     const at=raw.indexOf(trimmed);
+     node.nodeValue=raw.slice(0,at)+translated+raw.slice(at+trimmed.length);
+   }
+ }
+ root.querySelectorAll('[placeholder],[aria-label],[title]').forEach(node=>{
+   for(const key of ['placeholder','aria-label','title']){
+     if(node.hasAttribute(key)){
+       const old=node.getAttribute(key);
+       const next=ltText(old);
+       if(next!==old)node.setAttribute(key,next);
+     }
+   }
+ });
+}
+
+function init(){state={page:'products',history:[],modal:null,receipt:RECEIPT_ITEMS.map(x=>({...x})),imported:false,spent:26.40,budget:70,recipe:'chicken',step:0,meal:'Lunch',day:2,monthView:false,recipeQuery:'',notes:'',language:'en'};}
+init();
+const NAV=[['products','Products','box'],['scan','Scan','camera'],['recipes','Recipes','book'],['plan','Plan','calendar'],['ai','Chef AI','message']];
+const HEADINGS={
+ products:['Products',''],scan:['Import receipt',''],receiptPhoto:['Receipt camera',''],receiptReview:['Review products',''],receiptDone:['Import complete',''],recipes:['Discover recipes',''],allRecipes:['All recipes',''],recipeDetail:['Recipe details',''],recipeIngredients:['Ingredients',''],cooking:['Cooking mode',''],recipeFeedback:['Recipe feedback',''],plan:['Meal plan',''],nutrition:['Nutrition facts',''],ai:['Chef AI','']
+};
+function activeNav(p){if(['scan','receiptPhoto','receiptReview','receiptDone'].includes(p))return 'scan';if(['recipes','allRecipes','recipeDetail','recipeIngredients','cooking','recipeFeedback','nutrition'].includes(p))return 'recipes';return p}
+function header(){let [title,subtitle]=HEADINGS[state.page]||['Chef Kitchen',''];if(state.page==='nutrition')subtitle='';const simple=state.page==='ai';const isNested=['receiptPhoto','receiptReview','receiptDone','allRecipes','recipeDetail','recipeIngredients','cooking','recipeFeedback','nutrition'].includes(state.page);return `<header class="phone-header ${simple?'simple':''}"><div class="heading-row">${isNested?`<button class="back-inline" data-action="back" aria-label="Back">${icon('left',25)}</button>`:''}<h1>${esc(title)}</h1></div>${subtitle?`<p class="subtitle">${esc(subtitle)}</p>`:''}</header>`}
+function nav(){const active=activeNav(state.page);return `<nav class="bottom-nav" aria-label="Main navigation">${NAV.map(([page,label,glyph])=>`<button class="nav-btn ${active===page?'active':''}" data-action="nav" data-page="${page}" aria-label="${label}" ${active===page?'aria-current="page"':''}><span class="nav-icon">${icon(page==='recipes'?'pot':glyph,21)}</span><span>${label}</span></button>`).join('')}</nav>`}
+function chickenArt(){return `<svg viewBox="0 0 110 100" role="img" aria-label="Chicken illustration"><path d="M75 29c13 1 23 15 21 30-2 17-19 30-39 29-22-1-36-14-36-31 0-11 6-20 15-26" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linejoin="round"/><path d="M39 35c-5-10-7-18 0-20 5-5 8-1 9 4 3-7 8-7 11-3 3 4 1 11-2 14" fill="none" stroke="currentColor" stroke-width="4.2"/><path d="M36 42 23 47l14 5M46 42h.2M45 57c8 13 24 15 38 3M43 88l-3 8m21-8 3 8M90 39l10-8M93 49l12-2" stroke="currentColor" fill="none" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+function productsPage(){
+ const spent=state.spent;
+ const categories=[
+  ['Dairy',state.imported?5:4,state.imported?'€12.60':'€6.61','milk'],
+  ['Fruit & vegetables',state.imported?4:2,state.imported?'€5.58':'€0.46','apple'],
+  ['Seafood',2,'€7.00','fish'],
+ ];
+ return `<div class="products-screen"><div class="searchbar">${icon('search',20)}<input aria-label="Search products" placeholder="Search products..." id="productSearch"/><button class="link" data-action="searchProducts">Find</button></div>
+ <div class="card products-summary" style="margin-top:10px"><div class="row between"><div><div class="kicker">This month</div><div class="text-big" style="margin-top:5px">€${spent.toFixed(2)} spent</div></div><button class="btn small" data-action="noop">View stats ${icon('right',14)}</button></div>
+ <div class="stat-tiles"><div class="stat-tile"><strong>${state.imported?12:8}</strong><span>Products</span></div><div class="stat-tile"><strong>1</strong><span>Use soon</span></div><div class="stat-tile"><strong>€${Math.max(0,state.budget-spent).toFixed(2)}</strong><span>Budget left</span></div></div></div>
+ <div class="chips product-filters"><button class="pill selected" data-action="productsFilter" data-filter="all">All</button><button class="pill" data-action="noop" data-filter="urgent">Urgent (1)</button></div>
+ <div class="card alert-card product-expiry"><div class="row between"><div class="grow"><div class="kicker">Expires soon</div><h3>Farm milk</h3></div><span class="pill">1 day left</span></div><button class="btn small" data-action="useMilk">Find a recipe with milk ${icon('right',13)}</button></div>
+ <div class="section-title category-heading">Categories</div>
+ ${categories.map(([name,count,price,ic])=>`<div class="cat-item"><button type="button" aria-disabled="true" data-name="${name}"><span class="iconbox">${icon(ic,21)}</span><span class="grow text-strong">${name}</span><span class="pill soft">${count}</span><span class="text-body text-green">${price}</span>${icon('right',15)}</button></div>`).join('')}</div>`;
+}
+function scanPage(){return `<div class="receipt-options-screen">${[
+  ['Take receipt photo','Open the camera','camera','receiptPhoto'],
+  ['From gallery','Choose an existing photo','photo','noop'],
+  ['Add manually','Enter a product yourself','edit','noop'],
+  ['Receipt history','View previous imports','receipt','noop']
+  ].map(([title,sub,ic,to])=>`<button class="option-row" data-action="${to==='receiptPhoto'?'go':'noop'}" ${to==='receiptPhoto'?`data-page="receiptPhoto"`:''}><span class="iconbox">${icon(ic,21)}</span><span class="grow"><strong>${title}</strong><small>${sub}</small></span><span class="chev">${icon('right',18)}</span></button>`).join('')}</div>`}
+function receiptPhoto(){return `<div class="card" style="margin-top:10px;text-align:center;padding:25px 13px"><div style="border:2px dashed var(--line);border-radius:14px;height:222px;display:grid;place-items:center;background:var(--pale2)"><div><div style="color:var(--green)">${icon('receipt',55)}</div><p style="margin-top:12px">Place the full receipt inside the frame</p></div></div><div class="button-row"><button class="btn primary" data-action="go" data-page="receiptReview">${icon('camera',18)} Take photo</button></div></div>`}
+function receiptReview(){const total=state.receipt.filter(x=>x.selected).reduce((s,x)=>s+x.price,0);return `<div class="row between" style="margin-bottom:11px"><span class="text-small">Tap an item to include or exclude it.</span><button class="link" data-action="selectReceipt">Select all</button></div><div class="card">${state.receipt.map(x=>`<div class="listrow"><button class="checkboxlike ${x.selected?'checked':''}" aria-label="${x.selected?'Deselect':'Select'} ${esc(x.name)}" data-action="toggleReceipt" data-id="${x.id}">${x.selected?icon('check',15):''}</button><div class="grow"><div class="text-strong">${esc(x.name)}</div><div class="text-small">${x.qty} ${esc(x.unit)}</div></div><b style="font-size:13px">€${x.price.toFixed(2)}</b><button class="link" data-action="modal" data-modal="editReceipt" data-id="${x.id}" aria-label="Edit ${esc(x.name)}">${icon('edit',17)}</button></div>`).join('')}</div><div class="card"><div class="row between"><strong>Selected total</strong><strong>€${total.toFixed(2)}</strong></div><div class="button-row"><button class="btn primary" data-action="confirmReceipt" ${total===0?'disabled':''}>Confirm</button><button class="btn" data-action="cancelReceipt">Cancel</button></div></div>`}
+function receiptDone(){return `<div class="card" style="text-align:center;margin-top:32px;padding:23px 18px"><div class="iconbox" style="width:64px;height:64px;border-radius:50%;margin:auto">${icon('checkcircle',32)}</div><h3 style="margin-top:14px">Products added</h3><p>Your inventory and grocery spending have been updated.</p><div class="button-row"><button class="btn primary" data-action="go" data-page="products">View products</button><button class="btn" data-action="go" data-page="recipes">Find recipes</button></div></div>`}
+function recipesPage(){
+ const q=state.recipeQuery.toLowerCase().trim();const featured=RECIPES.chicken;
+ const searchForm=`<form class="searchbar" data-form="recipeSearch" style="margin-bottom:12px">${icon('search',20)}<input id="recipeSearch" placeholder="Search recipes or ingredients" aria-label="Search recipes" value="${esc(state.recipeQuery)}"/><button class="link" type="submit">Find</button></form>`;
+ if(q){const results=Object.entries(RECIPES).filter(([id,r])=>(r.name+' '+r.ingredients.join(' ')).toLowerCase().includes(q));return `<div class="recipe-results">${searchForm}<div class="section-title">Search results</div>${results.length?results.map(([id,r])=>recipeRow(id)).join(''):'<div class="empty-state">No matching recipes. Try another search.</div>'}<button class="btn full" data-action="clearRecipeSearch">Clear search</button></div>`}
+ return `${searchForm}
+ <div class="section-title recipe-section-head"><span>My recipes</span><button class="btn small" data-action="go" data-page="allRecipes">View all</button></div>
+ <div class="recipe-shortcuts">
+  <button class="recipe-shortcut" data-action="savedRecipes"><span class="shortcut-icon">${icon('bookmark',20)}</span><strong>Saved</strong><small>1 recipe</small></button>
+  <button class="recipe-shortcut" data-action="noop"><span class="shortcut-icon">${icon('plus',21)}</span><strong>Add recipe</strong><small>URL, photo, text, voice</small></button>
+  <button class="recipe-shortcut" disabled aria-disabled="true"><span class="shortcut-icon">${icon('apple',20)}</span><strong>From pantry</strong></button>
+ </div>
+ <div class="section-title">Recommended for you</div>
+ ${!q||'sweet and sour chicken'.includes(q)?`<div class="card feature-recipe"><div class="feature-art">${chickenArt()}</div><h3>${featured.name}</h3><div class="row between" style="margin-top:8px"><span class="text-small">50 min · 4 servings</span><button class="btn small" data-action="openRecipe" data-recipe="chicken">View details ${icon('right',13)}</button></div></div>`:''}
+ ${[['onions','Stuffed Onions','90 min · 6 servings'],['salad','Papaya Salad','15 min · 2 servings']].filter(([,name])=>!q||name.toLowerCase().includes(q)).map(([id,name,small])=>`<div class="recipe-tile"><span class="iconbox">${icon('chef',20)}</span><div class="grow"><strong>${name}</strong><small>${small}</small></div><button data-action="openRecipe" data-recipe="${id}" aria-label="Open ${name}">${icon('right',19)}</button></div>`).join('')}
+ ${q&&!Object.values(RECIPES).some(r=>r.name.toLowerCase().includes(q))?'<div class="empty-state">No matching recipes. Try another search.</div>':''}`;
+}
+
+function allRecipes(){return `<div class="section-title">Saved recipes</div>${recipeRow('onions',true)}<div class="section-title">More recipes</div>${recipeRow('chicken')}${recipeRow('salad')}<button class="btn soft full" style="margin-top:12px" data-action="noop">${icon('plus',17)} Add your own recipe</button>`}
+function recipeRow(id,saved=false){const r=RECIPES[id];return `<div class="card" style="padding:12px"><button class="row-btn" data-action="openRecipe" data-recipe="${id}"><span class="iconbox">${icon(saved?'bookmark':'chef',19)}</span><span class="grow"><b class="text-strong">${r.name}</b><div class="text-small">${r.mins} min · ${r.servings} servings</div></span>${icon('right',19)}</button></div>`}
+function recipeDetail(){
+ const r=RECIPES[state.recipe],fiber={chicken:'3.4 g',onions:'6.1 g',salad:'4.6 g'}[state.recipe]||'—';
+ const nutritionLabel='Nutrition details';
+ const planLabel='Add to plan';
+ return `<div class="recipe-detail-screen recipe-details-layout">
+  <div class="card detail-main">
+   <div class="feature-art">${state.recipe==='chicken'?chickenArt():icon('chef',58)}</div>
+   <h3>${r.name}</h3><p>${r.mins} min · ${r.servings} servings</p>
+   <div class="metric-grid"><div class="metric"><strong>${r.kcal}</strong><span>kcal</span></div><div class="metric"><strong>${r.protein}</strong><span>protein</span></div><div class="metric"><strong>${r.carbs}</strong><span>carbs</span></div><div class="metric"><strong>${fiber}</strong><span>fibre</span></div></div>
+   <div class="button-row"><button class="btn primary" data-action="startCooking">${icon('chef',18)} Cook</button><button class="btn" data-action="go" data-page="recipeIngredients">Ingredients</button></div>
+  </div>
+  <button class="option-row nutrition-detail-entry" data-action="openNutrition" data-recipe="${state.recipe}"><span class="iconbox">${icon('list',20)}</span><span class="grow"><strong>${nutritionLabel}</strong><small>Energy, protein, carbohydrates and more</small></span>${icon('right',18)}</button>
+  <button class="option-row adapt-detail-entry" data-action="noop"><span class="iconbox">${icon('sliders',20)}</span><span class="grow"><strong>Ask Chef to adapt this recipe</strong><small>Diet, accessibility, ingredients or taste</small></span>${icon('right',18)}</button>
+  <button class="btn soft full meal-plan-entry" data-action="addToMeal">${icon('calendar',18)} ${planLabel}</button>
+ </div>`;
+}
+
+function recipeIngredients(){const r=RECIPES[state.recipe];return `<div class="card"><h3>${r.name}</h3><p>${r.servings} servings</p><div class="line"></div>${r.ingredients.map(i=>`<div class="listrow"><span style="color:var(--green)">${icon('checkcircle',17)}</span><span class="text-body">${esc(i)}</span></div>`).join('')}<div class="button-row"><button class="btn primary" data-action="startCooking">${icon('chef',17)} Cook</button><button class="btn" data-action="addToMeal">${icon('calendar',17)} Add to meal plan</button></div></div>`}
+function cookingPage(){const r=RECIPES[state.recipe];const total=r.steps.length;const step=r.steps[state.step];return `<div class="guided-cooking-screen"><div class="label-row"><span class="kicker">Step ${state.step+1} of ${total}</span><span class="text-small">${state.step+1} / ${total}</span></div><div class="progress"><span style="width:${((state.step+1)/total)*100}%"></span></div>
+<button class="assist-card guided-cooking-assistant" data-action="modal" data-modal="voiceHelp"><span class="iconbox">${icon('mic',22)}</span><span class="grow"><strong>Voice assistant &amp; control</strong><small>Say “Chef” to talk, navigate steps, set timers or ask camera questions</small></span>${icon('right',19)}</button>
+<div class="button-row guided-cooking-tools"><button class="btn" data-action="modal" data-modal="cameraHelp">${icon('camera',20)} Visual questions</button><button class="btn" data-action="modal" data-modal="timer">${icon('clock',20)} Set timer</button></div>
+<div class="step-body"><h3>${esc(step[0])}</h3><p>${esc(step[1])}</p></div>
+<div class="button-row guided-cooking-navigation"><button class="btn" data-action="prevCooking">${icon('left',15)} Back</button><button class="btn primary" data-action="nextCooking">${state.step===total-1?'Finish cooking':'Next step'} ${icon('right',15)}</button></div></div>`}
+function recipeFeedback(){return `<div class="card"><h3>How did the meal turn out?</h3><p>Save a preference so Chef can suggest changes next time.</p><label class="inputlabel" for="recipeNotes">Your notes</label><textarea id="recipeNotes" class="textarea" placeholder="For example: reduce chili next time">${esc(state.notes)}</textarea><div class="button-row"><button class="btn primary" data-action="saveFeedback">Save feedback</button><button class="btn" data-action="go" data-page="recipes">Skip</button></div></div>`}
+function planPage(){
+ const days=[['Mon','2'],['Tue','3'],['Wed','4'],['Thu','5'],['Fri','6'],['Sat','7'],['Sun','8']];
+ const isPlanned=state.day===2&&state.meal==='Lunch';
+ return `<div class="row between month-heading"><strong>NOVEMBER</strong><button class="btn small" data-action="toggleMonth">${state.monthView?'View week':'View month'} ${icon('right',14)}</button></div>
+ <div class="days">${days.map(([name,n],idx)=>`<button class="day ${idx===state.day?'active':''}" data-action="setDay" data-day="${idx}"><small>${name}</small><b>${n}</b></button>`).join('')}</div>
+ <div class="meal-options meal-options-three">${['Breakfast','Lunch','Dinner'].map(v=>`<button class="${state.meal===v?'active':''}" data-action="setMeal" data-meal="${v}">${v}</button>`).join('')}</div>
+ <div class="card planned-meal-card"><div class="kicker text-green">${esc(state.meal)} · ${isPlanned?'Planned':'No meal planned'}</div>
+ ${isPlanned?`<h3>Stuffed Onions</h3><p>90 min · 6 servings</p>
+ <div class="metric-grid"><div class="metric"><strong>392</strong><span>kcal</span></div><div class="metric"><strong>19.6 g</strong><span>protein</span></div><div class="metric"><strong>32.3 g</strong><span>carbs</span></div><div class="metric"><strong>20.5 g</strong><span>fat</span></div></div>
+ <div class="button-row"><button class="btn" data-action="openRecipe" data-recipe="onions">View</button><button class="btn" data-action="noop">Swap</button></div>`:
+ `<div class="empty-state">No meal planned for this time.</div>`}
+ </div>
+ <button class="btn soft full add-meal-main" data-action="noop">${icon('plus',18)} Add new meal</button>`;
+}
+
+function nutritionPage(){const data={
+  onions:{macro:NUTRIENTS,micro:MICRO},
+  chicken:{macro:[['Energy','410 kcal'],['Protein','31.8 g'],['Total carbohydrates','27.4 g'],['Fibre','3.4 g'],['Net carbohydrates','24.0 g'],['Fat','19.2 g']],micro:[['Iron','2.1 mg'],['Calcium','63 mg'],['Vitamin A','520 µg'],['Vitamin C','46 mg'],['Vitamin B12','0.7 µg'],['Folate','52 µg'],['Potassium','690 mg']]},
+  salad:{macro:[['Energy','135 kcal'],['Protein','3.2 g'],['Total carbohydrates','18.4 g'],['Fibre','4.6 g'],['Net carbohydrates','13.8 g'],['Fat','5.4 g']],micro:[['Iron','0.8 mg'],['Calcium','38 mg'],['Vitamin A','450 µg'],['Vitamin C','90 mg'],['Vitamin B12','0 µg'],['Folate','69 µg'],['Potassium','320 mg']]}
+ }[state.recipe];return `<div class="nutrition-facts-screen"><div class="card nutrition-macro"><h3>Macronutrients</h3><p>Values per serving</p><div class="nutrition-facts-rows">${data.macro.map(([k,v])=>`<div class="nutrition-line"><span>${k}</span><strong>${v}</strong></div>`).join('')}</div></div>
+<div class="card nutrition-highlight"><h3>Highlighted nutrients</h3><div class="nutrient-grid">${data.micro.map(([k,v])=>`<div><span>${k}</span><small>${v}</small></div>`).join('')}</div></div>
+<div class="button-row nutrition-actions"><button class="btn primary" data-action="startCooking">${icon('chef',17)} Cook</button><button class="btn" data-action="addToMeal">Plan</button></div></div>`;}
+function aiPage(){
+ return `<div class="chat-layout">
+ <div class="chatbubble chatbubble-user">I bought groceries. Add everything from my receipt to my pantry, then plan 3 meals for under €10 using what I bought.</div>
+ <div class="assistant-reply ai-example-reply"><div class="text-strong">Here is what I can do:</div><div class="line"></div>
+  <div class="row ai-reply-item"><span class="iconbox">${icon('box',19)}</span><div class="grow"><strong>PANTRY IMPORT</strong><div class="text-small">1 carton milk · 1 loaf bread</div><div class="text-small">1 bunch bananas · 1 pack tomatoes</div></div><span class="pill">4 products</span></div>
+  <div class="line"></div><div class="row ai-reply-item"><span class="iconbox">${icon('calendar',19)}</span><div class="grow"><strong>MEAL PLAN</strong><div class="text-small">Estimated extra groceries €5–€8</div></div></div>
+  <div class="button-row"><button class="btn">Review</button><button class="btn primary">Confirm</button></div>
+ </div>
+ <div class="searchbar ai-composer"><button class="link" type="button" aria-label="Add a recipe">${icon('plus',19)}</button><input id="aiRequest" aria-label="Ask Chef" placeholder="Ask Chef..."/><button class="link" type="button" data-modal="voiceHelp" aria-label="Use microphone">${icon('mic',19)}</button><button class="link" type="button" aria-label="Send request">${icon('arrowup',19)}</button></div>
+ </div>`;
+}
+
+function screen(){const map={products:productsPage,scan:scanPage,receiptPhoto,receiptReview,receiptDone,recipes:recipesPage,allRecipes,recipeDetail,recipeIngredients,cooking:cookingPage,recipeFeedback,plan:planPage,nutrition:nutritionPage,ai:aiPage};return (map[state.page]||productsPage)()}
+
+
+function testerPanel(){return `<section class="aside test-panel"><h2>Usability test tasks</h2>
+<div class="test-task"><div class="side-label">Task 1 · Inventory &amp; budget</div><b>Add groceries from a receipt</b><p>Import a receipt by taking a photo, check the recognized products, confirm the import and view the updated pantry.</p></div>
+<div class="test-task"><div class="side-label">Task 2 · Personalized cooking</div><b>Find a recipe and use cooking guidance</b><p>Find a recipe, open cooking mode, use the AI help and set a timer. End by leaving feedback on the meal.</p></div>
+<div class="test-task"><div class="side-label">Task 3 · Nutrition</div><b>Review nutrition and plan a meal</b><p>Find the Stuffed Onions recipe, review its nutrition information, and add it to a meal plan.</p></div>
+<div class="prototype-controls"><h3>Prototype options</h3><label class="control-check"><input type="checkbox" data-option="lithuanian" ${(state.language==='lt')?'checked':''}/> Lithuanian prototype version</label><label class="control-check"><input type="checkbox" data-option="english" ${(state.language==='en')?'checked':''}/> English prototype version</label></div></section>`}
+function render(){
+  document.body.classList.add('updated');
+  const root = document.getElementById('root');
+  root.innerHTML = `<div class="topbar"><strong>Chef Kitchen</strong><button data-action="reset">${icon('refresh',14)} Reset</button></div><main class="main">${testerPanel()}<div class="phone-wrap"><section class="phone" aria-label="Chef Kitchen app">${header()}<div class="viewport" id="viewport">${screen()}</div>${nav()}</section></div></main>${state.modal?modalHtml(state.modal):''}`;
+  const isLithuanian = state.language === 'lt';
+  document.documentElement.lang = isLithuanian ? 'lt' : 'en';
+  if (isLithuanian) translateVisibleCopy(root);
+  if (state.page === 'recipeDetail') requestAnimationFrame(fitRecipeDetail);
+}
+
+function fitRecipeDetail(){
+ if(state.page!=='recipeDetail')return;
+ const viewport=document.getElementById('viewport');
+ const content=viewport?.querySelector('.recipe-detail-screen');
+ if(!viewport||!content)return;
+ const style=getComputedStyle(viewport);
+ const free=viewport.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom)-3;
+ if(free<=0)return;
+ function at(scale){content.style.zoom=String(scale);return content.getBoundingClientRect().height;}
+ if(at(1)<=free){at(1);return;}
+ let lo=.48,hi=1;
+ for(let i=0;i<16;i++){
+  const mid=(lo+hi)/2;
+  if(at(mid)<=free)lo=mid;else hi=mid;
+ }
+ at(lo);
+ viewport.scrollTop=0;
+}
+window.addEventListener('resize',()=>{if(state.page==='recipeDetail')requestAnimationFrame(fitRecipeDetail)});
+
+function go(page,push=true){if(!HEADINGS[page])return;if(push&&page!==state.page)state.history.push(state.page);state.page=page;state.modal=null;render();}
+function back(){if(state.modal){state.modal=null;render();return}const prev=state.history.pop();go(prev||activeNav(state.page),false)}
+function openRecipe(id){state.recipe=id in RECIPES?id:'chicken';go('recipeDetail')}
+function openModal(name,data={}){state.modal={name,...data};render()}
+function modalHtml(m){let title='',content='',foot='';
+const close=`<button class="btn" data-action="closeModal">Close</button>`;
+switch(m.name){
+case 'editReceipt':title='Edit product';{const item=state.receipt.find(x=>x.id===Number(m.id))||state.receipt[0];content=`<label class="inputlabel">Product</label><input class="input" id="editReceiptName" value="${esc(item.name)}"/><label class="inputlabel">Quantity</label><input class="input" id="editReceiptQty" type="number" min="1" value="${item.qty}"/><label class="inputlabel">Price (€)</label><input class="input" id="editReceiptPrice" type="number" step="0.01" min="0" value="${item.price.toFixed(2)}"/>`;foot=`<button class="btn primary" data-action="saveReceiptEdit" data-id="${item.id}">Save changes</button>${close}`;}break;
+case 'voiceHelp':title='Voice assistant & control';content=`<p class="modal-desc">Say <strong>“Chef”</strong> to activate voice control. You can:</p><div class="column"><div class="note">Have a conversation or ask cooking questions</div><div class="note">Set a timer or read a step aloud</div><div class="note">Move to the next or previous cooking step</div><div class="note">Activate the camera to ask about an ingredient or cooking step</div></div>`;foot=close;break;
+case 'cameraHelp':title='Camera questions';content=`<p class="modal-desc">You could show Chef an ingredient or cooking stage and ask a question.</p><div class="note">Example question: “Are these vegetables chopped small enough?”</div>`;foot=close;break;
+case 'timer':title='Set a cooking timer';content=`<label class="inputlabel">Duration in seconds</label><input class="input" type="number" id="timerSeconds" min="1" max="86400" value="30"/>`;foot=`<button class="btn primary" data-action="startTimer">Set timer</button>${close}`;break;
+default:title='Options';content='<p class="modal-desc">Choose an action to continue.</p>';foot=close;
+}
+return `<div class="overlay" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="row between"><h2 id="modal-title">${title}</h2><button class="link" data-action="closeModal" aria-label="Close">${icon('x',21)}</button></div>${content}<div class="modal-footer">${foot}</div></div></div>`}
+function handleClick(el){const act=el.dataset.action;const id=Number(el.dataset.id||0);switch(act){
+case 'nav':go(el.dataset.page);break;
+case 'go':go(el.dataset.page);break;
+case 'back':back();break;
+case 'reset':init();render();break;
+case 'openRecipe':openRecipe(el.dataset.recipe);break;
+case 'openNutrition':state.recipe=el.dataset.recipe||'onions';go('nutrition');break;
+case 'savedRecipes':go('allRecipes');break;
+case 'modal':openModal(el.dataset.modal,{id});break;
+case 'closeModal':state.modal=null;render();break;
+case 'toggleReceipt':{const r=state.receipt.find(x=>x.id===id);if(r)r.selected=!r.selected;render();break;}
+case 'selectReceipt':state.receipt.forEach(x=>x.selected=true);render();break;
+case 'saveReceiptEdit':{const r=state.receipt.find(x=>x.id===id);if(!r)break;r.name=document.getElementById('editReceiptName').value||r.name;r.qty=Math.max(1,Number(document.getElementById('editReceiptQty').value)||1);r.price=Math.max(0,Number(document.getElementById('editReceiptPrice').value)||0);state.modal=null;render();break;}
+case 'confirmReceipt':{const total=state.receipt.filter(x=>x.selected).reduce((s,x)=>s+x.price,0);if(total===0)return;if(!state.imported){state.imported=true;state.spent+=total;}go('receiptDone');break;}
+case 'productsFilter':if(el.dataset.filter==='all')render();break;
+case 'useMilk':go('recipes');break;
+case 'searchProducts':break;
+case 'startCooking':state.step=0;go('cooking');break;
+case 'cancelReceipt':go('scan');break;
+case 'clearRecipeSearch':state.recipeQuery='';render();break;
+case 'nextCooking':{const r=RECIPES[state.recipe];if(state.step<r.steps.length-1){state.step++;render()}else{go('recipeFeedback')}break;}
+case 'prevCooking':if(state.step>0){state.step--;render()}else back();break;
+case 'saveFeedback':state.notes=document.getElementById('recipeNotes')?.value||'';go('recipes');break;
+
+case 'startTimer':{const seconds=Math.max(1,Math.min(86400,Number(document.getElementById('timerSeconds')?.value)||30));state.timerPreviewSeconds=seconds;state.modal=null;render();break;}
+case 'setDay':state.day=Number(el.dataset.day);render();break;
+case 'setMeal':state.meal=el.dataset.meal;render();break;
+case 'toggleMonth':state.monthView=!state.monthView;render();break;
+case 'addToMeal':state.meal='Lunch';state.day=2;go('plan');break;
+default:break;
+}}
+document.addEventListener('change',event=>{
+  const option = event.target?.dataset?.option;
+  if (option === 'lithuanian') state.language = 'lt';
+  else if (option === 'english') state.language = 'en';
+  else return;
+  render();
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b){e.preventDefault();handleClick(b)}else if(e.target.classList?.contains('overlay')){state.modal=null;render()}});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const kind=f.dataset.form;if(kind==='recipeSearch'){state.recipeQuery=document.getElementById('recipeSearch')?.value||'';render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}else if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();back()}});
+render();
+</script>
+</body>
+</html>
